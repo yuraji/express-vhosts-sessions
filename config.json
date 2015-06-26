@@ -1,0 +1,31 @@
+{
+	"http_port": 9090,
+	"projects": [
+	{
+		"disabled": false,
+		"domain": "artist.aa",
+		"path": "./artist_app",
+		"title": "Artist App",
+		"session": {
+			"secret": "artist12345"
+		},
+		"users": [
+			{ "name": "Alice",
+			  "age": 23 }
+		]
+	},
+	{
+		"disabled": false,
+		"domain": "baker.aa",
+		"path": "./baker_app",
+		"title": "Baker App",
+		"session": {
+			"secret": "baker12345"
+		},
+		"users": [
+			{ "name": "Bob",
+			  "age": 26 }
+		]
+	}
+	]
+}

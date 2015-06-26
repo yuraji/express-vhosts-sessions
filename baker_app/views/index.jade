@@ -1,0 +1,12 @@
+doctype
+html
+	head
+		title= title
+	body
+		h1= title
+
+		if user
+			p Hello #{user.name} #[a(href="/logout") [logout]]
+		else
+			p
+				a(href="/confirm/i_am_bob") Login as Bob
