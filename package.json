@@ -1,7 +1,7 @@
 {
-  "name": "26express-vhosts-sessions",
+  "name": "express-vhosts-sessions",
   "version": "1.0.0",
-  "description": "Express Vhosts Sessions example",
+  "description": "Express Vhosts Passport Sessions example",
   "repository": {},
   "main": "server.js",
   "author": "Yuriy Linnyk <yuraji@gmail.com> (http://yur.io)",

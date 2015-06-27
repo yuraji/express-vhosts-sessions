@@ -13,16 +13,60 @@ var cookieParser = require('cookie-parser');
 var FileStore = require('session-file-store')(session);
 
 var logger = require('morgan');
-var tracer = require('tracer').console(
-                {
-                    format : "{{message}} ({{timestamp}} in {{path}}:{{line}})",
-                    dateformat : "HH:MM:ss.L"
-                });
+var tracer = require('tracer').console({
+			format : "{{message}} ({{timestamp}} in {{path}}:{{line}})",
+			dateformat : "HH:MM:ss.L"});
 
-var passport = require('passport');
+var Passports = require('passports');
+var Passport = require("passport").Passport;
 var HashStrategy = require('passport-hash').Strategy;
 
 module.exports = function(config){
+
+	var passportStrategy = new HashStrategy(
+		function(hash, done) {
+			tracer.log( chalk.bgWhite.blue(config.domain + '(hash stragegy)'), 'HASH SUBMITTED:', hash);
+			// Perhaps find a user from a DB by this hash
+			var user = config.users[0];
+			tracer.log( chalk.bgWhite.blue(config.domain + '(hash stragegy)'), 'Found DB user:', user);
+			return done(null, user);
+		}
+	);
+
+	var passports = new Passports();
+	passports._getConfig = function _getConfig(req, done) {
+		tracer.log(chalk.bgWhite.blue(config.domain + '(passports._getConfig)'));
+		return done(null, req.hostname, {
+			realm: req.hostname,
+		});
+	};
+
+	passports._createInstance = function _createInstance(options, done) {
+
+		tracer.log(chalk.bgWhite.blue(config.domain + '(passports._createInstance)'));
+
+		var instance = new Passport();
+
+		instance.use("hash", passportStrategy);
+
+		instance.serializeUser(function(user, done) {
+			tracer.log(chalk.bgWhite.blue(config.domain + '(passports.instance.serializeUser)'), user);
+			user.realm = options.realm;
+
+			done(null, user);
+			// done(null, JSON.stringify(user));
+		});
+
+		instance.deserializeUser(function(user, done) {
+			tracer.log(chalk.bgWhite.blue(config.domain + '(passports.instance.deserializeUser)'), user);
+
+			done(null, user);
+			// done(null, JSON.parse(id));
+		});
+
+		done(null, instance);
+	};
+
 
 	var app = express();
 
@@ -52,12 +96,16 @@ module.exports = function(config){
 	app.use(bodyParser.json()); // get information from html forms
 	app.use(bodyParser.urlencoded({extended: true}))
 
-	app.use(cookieParser(config.session.secret)); // read cookies (needed for auth) // Note Since version 1.5.0, the cookie-parser middleware no longer needs to be used for this module to work. This module now directly reads and writes cookies on req/res. https://github.com/expressjs/session
+	app.use(cookieParser(config.session.secret)); // read cookies (needed for auth) // Note Since version 1.5.0, the cookie-parser middleware no longer needs to be used for express-session module to work. This module now directly reads and writes cookies on req/res. https://github.com/expressjs/session
 
 	app.use(session(sessionOpts));
 
-	app.use(passport.initialize());
-	app.use(passport.session());
+	app.use(passports.attach());
+	app.use(passports.middleware("initialize"));
+	app.use(passports.middleware("session"));
+
+	// app.use(app.router);
+
 	app.use(flash());
 
 	app.get('/', function(req, res){
@@ -73,31 +121,18 @@ module.exports = function(config){
 	});
 
 	app.get('/confirm/:hash', 
-		passport.authenticate('hash', { failureRedirect: '/' }),
-		function(req, res) {
+		function(req, res, done){
 			tracer.log( chalk.bgWhite.blue(config.domain + '/confirm/:hash') );
+			done();
+		},
+		// passport.authenticate('hash', { failureRedirect: '/' }),
+		passports.middleware("authenticate", "hash", { successRedirect: "/", failureRedirect: '/' }),
+
+		function(req, res) {
+			tracer.log( chalk.bgWhite.blue(config.domain + '/confirm/:hash (done)') );
 			res.redirect('/');
 		}
 	);
-
-	passport.use(new HashStrategy(
-		function(hash, done) {
-			tracer.log( chalk.bgWhite.blue(config.domain + '(hash stragegy)'), 'HASH SUBMITTED:', hash);
-			// Perhaps find a user from a DB by this hash
-			var user = config.users[0];
-			tracer.log( chalk.bgWhite.blue(config.domain + '(hash stragegy)'), 'Found DB user:', user);
-			return done(null, user);
-		}
-	));
-
-	passport.serializeUser(function(user, done) {
-		done(null, user);
-	});
-
-	passport.deserializeUser(function(user, done) {
-		done(null, user);
-	});
-
 
 
 	return app;
