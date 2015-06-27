@@ -6,10 +6,10 @@ Passport.js happens to share strategy between different vhosts.
 
 ## Local users
 
-Alice is an Artist
+Alice is an Artist  
 She visits artist_app at artist.aa
 
-Bob is a Baker
+Bob is a Baker  
 He visits baker_app at baker.aa
 
 They don't know about each other. But Alice finds herself logged in as Bob (a user from a site she is not even aware of).
@@ -24,7 +24,7 @@ npm install
 ```
 
 define local hosts:  
-artist.aa
+artist.aa  
 baker.aa
 
 Run `node server`
