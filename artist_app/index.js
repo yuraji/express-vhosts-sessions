@@ -23,6 +23,16 @@ var HashStrategy = require('passport-hash').Strategy;
 
 module.exports = function(config){
 
+	var app = express();
+
+	// app.use(logger('dev'));
+
+	app.set('views', path.join(__dirname, 'views'));
+	app.set('view engine', 'jade');
+
+	app.use(express.static(path.join(__dirname, 'public')));
+
+
 	var passportStrategy = new HashStrategy(
 		function(hash, done) {
 			tracer.log( chalk.bgWhite.blue(config.domain + '(hash stragegy)'), 'HASH SUBMITTED:', hash);
@@ -66,17 +76,6 @@ module.exports = function(config){
 
 		done(null, instance);
 	};
-
-
-	var app = express();
-
-	// app.use(logger('dev'));
-
-	app.set('views', path.join(__dirname, 'views'));
-	app.set('view engine', 'jade');
-
-	app.use(express.static(path.join(__dirname, 'public')));
-
 
 	sessionStore = new FileStore({
 		path: path.join( __dirname, 'sessions' )
